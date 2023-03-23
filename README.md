@@ -1,6 +1,6 @@
-# Help the cook! 🧑‍🍳
+# Tailwind palette generator
 
-> Let AI help you decide what to cook whit the ingredients that you have at home.
+> Create your custom tailwind palette with the help of AI 💅
 
 ### How to run this project?
 
