@@ -25,12 +25,12 @@ const schema = z.object({
 
 type FormState = {
   prompt?: string;
-  images?: File;
+  images?: File[];
 };
 
 const Home: NextPage = () => {
   const [tokenSaved] = useLocalStorage("token_saved", false);
-
+  const [hexColors, setHexColors] = useState<string[]>([]);
   const [showDropzone, setShowDropzone] = useState(false);
   const [text, setText] = useState("");
   const {
@@ -40,16 +40,24 @@ const Home: NextPage = () => {
     formState: { isValid, isSubmitting },
     setValue,
   } = useForm<FormState>({
-    resolver: zodResolver(schema),
+    defaultValues: {
+      prompt: "",
+      images: [],
+    },
+    // resolver: zodResolver(schema),
   });
 
   useEffect(() => {
     register("images");
   }, []);
 
-  // const imageColorsMutation = useMutation({
-  //   mutationFn: (images:FileList) => ExtractColors(images)
-  // })
+  const imageColorsMutation = useMutation({
+    mutationFn: (images: string) => ExtractColors(images),
+    onSuccess(data) {
+      const hexColors = data.map((color) => color.hex);
+      setHexColors(hexColors);
+    },
+  });
 
   // const recipeMutation = useMutation({
   //   mutationFn: (items: string[]) =>
@@ -79,7 +87,9 @@ const Home: NextPage = () => {
   // });
 
   const generateRecipe = (data: FormState) => {
-    console.log(data);
+    if (data.images) {
+      imageColorsMutation.mutate(URL.createObjectURL(data?.images[0]));
+    }
     // event({
     //   action: "submit_form",
     //   category: "user_interaction",
@@ -170,6 +180,31 @@ const Home: NextPage = () => {
               Generate
             </button>
           </form>
+
+          {hexColors.length ? (
+            <div className="rounded-xl bg-white shadow-lg p-6 animate-in slide-in-from-bottom-4 delay-75">
+              <h3 className="text-center font-bold text-lg mb-7">
+                We picked these colors from the images you gave us:
+              </h3>
+              <div className="flex items-center justify-evenly">
+                {hexColors.map((color) => (
+                  <div key={color} className="flex flex-col items-center">
+                    <ColorSquare
+                      color={color}
+                      onDelete={(color) =>
+                        setHexColors((state) =>
+                          state.filter((c) => c !== color)
+                        )
+                      }
+                    />
+                    <span className="text-sm text-center mt-2 font-lato uppercase">
+                      {color}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </section>
         <div className="flex flex-wrap justify-center max-w-4xl mx-auto mt-6 sm:w-full">
           <Transition
@@ -208,6 +243,32 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+const ColorSquare = ({
+  color,
+  onDelete,
+}: {
+  color: string;
+  onDelete(color: string): void;
+}) => {
+  return (
+    <div
+      className="rounded-md shadow-md bg-[var(--analyzed-color)] w-20 h-20 relative group animate-in fade-in-10"
+      key={color}
+      style={{ "--analyzed-color": color } as React.CSSProperties}
+    >
+      <span className="select-none text-transparent bg-transparent backdrop-hue-rotate-180">
+        {color}
+      </span>
+      <button
+        onClick={() => onDelete(color)}
+        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity ease-in-out direction-normal anim pointer-events-none group-hover:pointer-events-auto cursor-none hover:cursor-pointer rounded-md bg-transparent backdrop-brightness-75 text-white w-6 h-6 text-sm"
+      >
+        <PlusCircleSolid className="w-5 h-5 m-auto rotate-45" />
+      </button>
+    </div>
+  );
+};
 
 interface DropzoneProps extends DropzoneOptions {
   onChange: (...event: any[]) => void;
