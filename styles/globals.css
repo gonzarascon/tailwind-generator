@@ -2,13 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-    .scrollbar::-webkit-scrollbar {
-        height: 8px;
-        width: 8px;
-    }
+@layer base {
+  @import url("highlight.js/styles/github-dark-dimmed.css");
+}
 
-    .scrollbar::-webkit-scrollbar-thumb {
-        @apply bg-slate-300 rounded-xl;
-    }
+@layer utilities {
+  .scrollbar::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-xl;
+  }
+}
+
+pre code.hljs {
+  @apply bg-transparent;
 }

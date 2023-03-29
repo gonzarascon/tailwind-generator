@@ -7,10 +7,11 @@ import { cn } from "@/lib/cn";
 import { useMutation } from "@tanstack/react-query";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { Components } from "react-markdown";
 import { Transition } from "@headlessui/react";
 import Cross from "@/public/icons/close-outline.svg";
 import Picture from "@/public/icons/image-outline.svg";
+import Copy from "@/public/icons/copy-outline.svg";
 import { useCallback, useEffect, useState } from "react";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { event } from "@/lib/ga";
@@ -18,14 +19,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { DropzoneOptions, useDropzone } from "react-dropzone";
 import { ExtractColors } from "@/lib/ExtractColors";
 import { DevTool } from "@hookform/devtools";
+import * as React from "react";
+import rehypeHighlight from "rehype-highlight";
+import { ReactMarkdownProps } from "react-markdown/lib/ast-to-react";
 
 const schema = z.object({
-  // prompt: z.string().min(10).nullable(),
+  prompt: z.string().min(10),
 });
 
 type FormState = {
   prompt?: string;
-  images?: File[];
 };
 
 const Home: NextPage = () => {
@@ -42,20 +45,15 @@ const Home: NextPage = () => {
   } = useForm<FormState>({
     defaultValues: {
       prompt: "",
-      images: [],
     },
-    // resolver: zodResolver(schema),
+    resolver: zodResolver(schema),
   });
-
-  useEffect(() => {
-    register("images");
-  }, []);
 
   const imageColorsMutation = useMutation({
     mutationFn: (images: string) => ExtractColors(images),
     onSuccess(data) {
       const hexColors = data.map((color) => color.hex);
-      setHexColors(hexColors);
+      setHexColors((state) => [...state, ...hexColors]);
     },
   });
 
@@ -86,10 +84,13 @@ const Home: NextPage = () => {
   //   },
   // });
 
+  const getColorsFromImages = (files: File[]) => {
+    files.forEach((file) => {
+      imageColorsMutation.mutate(URL.createObjectURL(file));
+    });
+  };
+
   const generateRecipe = (data: FormState) => {
-    if (data.images) {
-      imageColorsMutation.mutate(URL.createObjectURL(data?.images[0]));
-    }
     // event({
     //   action: "submit_form",
     //   category: "user_interaction",
@@ -119,7 +120,7 @@ const Home: NextPage = () => {
         />
       </Head>
 
-      <main className="w-full min-h-screen px-5 bg-top bg-cover lg:px-20 py-28 bg-mesh-light dark:bg-mesh-dark">
+      <main className="w-full min-h-screen px-5 bg-top bg-cover lg:px-20 py-28 bg-gradient-to-t from-sky-500 from-0% via-30% to-50% to-white via-emerald-300 dark:to-slate-800 dark:from-indigo-500 dark:via-blue-900 dark:to-50%">
         <section className="min-h-[65vh] flex flex-col justify-center max-w-5xl mx-auto">
           <h1 className="text-5xl font-bold lg:text-6xl text-slate-700 dark:text-white">
             Tailwind{" "}
@@ -137,16 +138,16 @@ const Home: NextPage = () => {
             className="relative w-full mt-8 mb-6 space-y-10"
             onSubmit={handleSubmit(generateRecipe)}
           >
-            <div className="relative flex flex-col items-center justify-center w-full p-4 pt-16 bg-white shadow-md lg:flex-row rounded-xl dark:bg-transparent dark:shadow-none flex-nowrap min-h-[164px]">
+            <div className="relative flex flex-col items-center justify-center w-full p-4 pt-16 bg-white shadow-md lg:flex-row rounded-xl dark:bg-gray-900 dark:shadow-slate-900 flex-nowrap min-h-[164px]">
               <button
                 type="button"
-                className="absolute flex items-center py-2 transition-all rounded-md hover:px-4 top-4 right-4 hover:backdrop-brightness-95 group"
+                className="absolute flex items-center py-2 transition-all rounded-md hover:px-4 top-4 right-4 hover:backdrop-brightness-95 dark:hover:backdrop-brightness-150 group"
                 onClick={() => setShowDropzone((state) => !state)}
               >
                 {!showDropzone ? (
-                  <Picture className="w-5 h-5 text-neutral-600" />
+                  <Picture className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
                 ) : (
-                  <Cross className="w-5 h-5 text-neutral-600" />
+                  <Cross className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
                 )}
                 <span className="w-0 overflow-hidden text-sm transition-all group-hover:ml-2 group-hover:w-28 whitespace-nowrap">
                   {!showDropzone ? "Upload pictures" : "Cancel"}
@@ -155,8 +156,8 @@ const Home: NextPage = () => {
               <Textarea {...register("prompt")} />
               <Dropzone
                 multiple
-                onChange={(file) => {
-                  setValue("images", file);
+                onChange={(files) => {
+                  getColorsFromImages(files);
                 }}
                 visible={showDropzone}
                 accept={{
@@ -181,12 +182,47 @@ const Home: NextPage = () => {
             </button>
           </form>
 
-          {hexColors.length ? (
-            <div className="rounded-xl bg-white shadow-lg p-6 animate-in slide-in-from-bottom-4 delay-75">
-              <h3 className="text-center font-bold text-lg mb-7">
+          <Transition
+            as="div"
+            show={
+              imageColorsMutation.isLoading ||
+              (imageColorsMutation.isSuccess && !!hexColors.length)
+            }
+            className="p-6 delay-75 bg-white shadow-lg rounded-xl animate-in slide-in-from-bottom-4 dark:bg-gray-900 dark:shadow-slate-900"
+            enter="transition-[opacity_transform]"
+            enterFrom="opacity-0 translate-y-4"
+            enterTo="opacity-100 translate-y-0"
+            leave="transition-[opacity_transform]"
+            leaveTo="opacity-0 translate-y-4"
+            leaveFrom="opacity-100 translate-y-0"
+          >
+            <Transition
+              show={imageColorsMutation.isLoading}
+              enter="transition-opacity duration-100"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+              leave="transition-opacity duration-150"
+            >
+              <h3 className="my-auto text-xl font-bold text-center mb-7">
+                Extracting images colors...
+              </h3>
+            </Transition>
+
+            <Transition
+              show={imageColorsMutation.isSuccess && !!hexColors.length}
+              enter="transition-opacity duration-100"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+              leave="transition-opacity duration-150"
+            >
+              <h3 className="text-lg font-bold text-center mb-7">
                 We picked these colors from the images you gave us:
               </h3>
-              <div className="flex items-center justify-evenly">
+              <div className="grid grid-cols-[repeat(auto-fill,_minmax(80px,_1fr))] items-center gap-6">
                 {hexColors.map((color) => (
                   <div key={color} className="flex flex-col items-center">
                     <ColorSquare
@@ -197,14 +233,14 @@ const Home: NextPage = () => {
                         )
                       }
                     />
-                    <span className="text-sm text-center mt-2 font-lato uppercase">
+                    <span className="mt-2 text-sm text-center uppercase font-lato">
                       {color}
                     </span>
                   </div>
                 ))}
               </div>
-            </div>
-          ) : null}
+            </Transition>
+          </Transition>
         </section>
         <div className="flex flex-wrap justify-center max-w-4xl mx-auto mt-6 sm:w-full">
           <Transition
@@ -231,7 +267,13 @@ const Home: NextPage = () => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-0"
             >
-              <ReactMarkdown className="w-full px-6 mb-12 prose-sm prose bg-white shadow-md md:prose-lg dark:bg-transparent dark:shadow-none py-7 rounded-xl prose-headings:text-purple-500 dark:prose-p:text-slate-200 dark:prose-li:text-slate-300 dark:prose-strong:text-purple-500">
+              <ReactMarkdown
+                rehypePlugins={[rehypeHighlight]}
+                components={{
+                  pre: Pre,
+                }}
+                className="w-full px-6 mb-12 prose-sm prose bg-white shadow-md md:prose-lg dark:bg-gray-900 dark:shadow-slate-900 py-7 rounded-xl prose-headings:text-purple-500 dark:prose-p:text-slate-200 dark:prose-li:text-slate-300 dark:prose-strong:text-purple-500"
+              >
                 {text ?? ""}
               </ReactMarkdown>
             </Transition.Child>
@@ -243,6 +285,34 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+const Pre = ({
+  node: _node,
+  children,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<"pre"> & ReactMarkdownProps) => {
+  const preRef = React.useRef<HTMLPreElement | null>(null);
+
+  const handleClick = () => {
+    if (preRef.current?.textContent) {
+      navigator.clipboard.writeText(preRef.current.textContent);
+    }
+  };
+
+  return (
+    <pre ref={preRef} {...props} className={cn(className, "relative")}>
+      <button
+        onClick={handleClick}
+        title="Copy content"
+        className="absolute p-2 rounded-md top-2 right-2 hover:backdrop-brightness-150 active:backdrop-brightness-125"
+      >
+        <Copy className="w-6 h-6 text-slate-300" />
+      </button>
+      {children}
+    </pre>
+  );
+};
 
 const ColorSquare = ({
   color,
@@ -257,12 +327,12 @@ const ColorSquare = ({
       key={color}
       style={{ "--analyzed-color": color } as React.CSSProperties}
     >
-      <span className="select-none text-transparent bg-transparent backdrop-hue-rotate-180">
+      <span className="text-transparent bg-transparent select-none backdrop-hue-rotate-180">
         {color}
       </span>
       <button
         onClick={() => onDelete(color)}
-        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity ease-in-out direction-normal anim pointer-events-none group-hover:pointer-events-auto cursor-none hover:cursor-pointer rounded-md bg-transparent backdrop-brightness-75 text-white w-6 h-6 text-sm"
+        className="absolute w-6 h-6 text-sm text-white transition-opacity ease-in-out bg-transparent rounded-md opacity-0 pointer-events-none top-1 right-1 group-hover:opacity-100 direction-normal anim group-hover:pointer-events-auto cursor-none hover:cursor-pointer backdrop-brightness-75"
       >
         <PlusCircleSolid className="w-5 h-5 m-auto rotate-45" />
       </button>
@@ -271,7 +341,7 @@ const ColorSquare = ({
 };
 
 interface DropzoneProps extends DropzoneOptions {
-  onChange: (...event: any[]) => void;
+  onChange: <T extends File>(file: T[]) => void;
   visible: boolean;
 }
 
@@ -289,7 +359,7 @@ const Dropzone = ({ multiple, onChange, visible, ...rest }: DropzoneProps) => {
       className={cn(
         "w-0 max-w-md opacity-0 transition-[opacity,width] overflow-hidden ",
         {
-          "w-full opacity-100 px-6 duration-300 py-7 ml-5 border-2 border-dashed border-indigo-400 rounded-lg h-full":
+          "w-full opacity-100 px-6 duration-300 py-7 ml-5 border-2 border-dashed border-indigo-400 dark:border-orange-400 rounded-lg h-full":
             visible,
         }
       )}
