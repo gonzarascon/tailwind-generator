@@ -107,9 +107,10 @@ export default function Nav() {
       <div className="flex items-center gap-4 ">
         <a
           className="p-3 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700"
-          href="https://github.com/gonzarascon/help-the-cook"
+          href="https://github.com/gonzarascon/tailwind-generator"
           rel="noopener noreferrer"
           target="_blank"
+          title="Github repo"
         >
           <GithubSolid className="w-6 h-6 opacity-75 fill-slate-400 dark:fill-slate-200" />
         </a>
@@ -118,6 +119,7 @@ export default function Nav() {
           href="https://twitter.com/Gonza_Rascon"
           rel="noopener noreferrer"
           target="_blank"
+          title="My twitter profile"
         >
           <TwitterSolid className="w-5 h-5 opacity-75 fill-slate-400 dark:fill-slate-200" />
         </a>
