@@ -274,6 +274,11 @@ const Pre = ({
 
   const handleClick = () => {
     if (preRef.current?.textContent) {
+      event({
+        action: "copy_text",
+        category: "user_interaction",
+        label: "Copy Tailwind Config",
+      });
       navigator.clipboard.writeText(preRef.current.textContent);
     }
   };
