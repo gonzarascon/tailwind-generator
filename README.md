@@ -11,6 +11,7 @@
    ```
 
 2. Run development mode:
+   > Local application will be available at http://localhost:3000
    ```sh
    npm run dev
    ```

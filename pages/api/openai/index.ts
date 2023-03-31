@@ -8,17 +8,14 @@ const prompt = (
   colorList?: string
 ) => `Based on my indications, give me a color palette for me to add to my tailwind.config file. I don't need any conversation with you, just the color extension to add to my config.  The palette should be unique without repeating the actual colors tailwind gives as defaults. Please for each color you suggest to me, add the different variants of it, for example:
 \`\`\` blue: {50: "some hex code", 100:"another hex code",  and so}\`\`\`
-${userPrompt}
+${userPrompt}\r\n
 ${
   colorList
     ? `Also, keep in mind the following colors as a reference for the palette I'm looking for, they should be included:
     ${colorList}
     `
     : ""
-}
-
-
-`;
+}`;
 
 export default async function handler(req: NextRequest) {
   try {
