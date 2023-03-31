@@ -95,11 +95,11 @@ const Home: NextPage = () => {
   };
 
   const generateRecipe = (data: FormState) => {
-    // event({
-    //   action: "submit_form",
-    //   category: "user_interaction",
-    //   label: "Submit form",
-    // });
+    event({
+      action: "submit_form",
+      category: "user_interaction",
+      label: "Submit form",
+    });
     setText("");
     paletteMutation.mutate(data.prompt);
   };
@@ -112,7 +112,7 @@ const Home: NextPage = () => {
         <meta name="og:title" content="Tailwind Palette Generator" />
         <meta
           name="og:description"
-          content="AI to the rescue of cooking aficionados"
+          content="Create your custom tailwind palette with the help of AI"
         />
         <meta
           name="og:image"
