@@ -32,7 +32,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
           __html: `window.dataLayer = window.dataLayer || [];
                   function gtag(){dataLayer.push(arguments);}
                   gtag('js', new Date());
-                  gtag('config', ${ANALYTICS_ID});`,
+                  gtag('config', "${ANALYTICS_ID}");`,
         }}
       />
       <QueryClientProvider client={queryClient}>
