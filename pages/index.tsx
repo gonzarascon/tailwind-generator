@@ -152,7 +152,7 @@ const Home: NextPage = () => {
                 </span>
               </button>
               <div className="flex flex-col w-full mb-4 sm:mb-0">
-                <Label className="mb-6 sm:max-w-[265px] md:max-w-[377px]">
+                <Label className="mb-6 sm:max-w-[265px] md:max-w-[377px] lg:max-w-none">
                   Enter your prompt, and start generating your new palette:
                 </Label>
                 <Textarea
