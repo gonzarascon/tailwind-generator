@@ -1,18 +1,16 @@
-import { Input } from "@/components/ui/input";
 import type { NextPage } from "next";
 import Head from "next/head";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import PlusCircleSolid from "@/public/icons/plus-circle-solid.svg";
 import { cn } from "@/lib/cn";
 import { useMutation } from "@tanstack/react-query";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import ReactMarkdown, { Components } from "react-markdown";
+import ReactMarkdown from "react-markdown";
 import { Transition } from "@headlessui/react";
 import Cross from "@/public/icons/close-outline.svg";
 import Picture from "@/public/icons/image-outline.svg";
 import Copy from "@/public/icons/copy-outline.svg";
-import { useCallback, useEffect, useState } from "react";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { event } from "@/lib/ga";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,15 +32,13 @@ type FormState = {
 
 const Home: NextPage = () => {
   const [tokenSaved] = useLocalStorage("token_saved", false);
-  const [hexColors, setHexColors] = useState<string[]>([]);
-  const [showDropzone, setShowDropzone] = useState(false);
-  const [text, setText] = useState("");
+  const [hexColors, setHexColors] = React.useState<string[]>([]);
+  const [showDropzone, setShowDropzone] = React.useState(false);
+  const [text, setText] = React.useState("");
   const {
-    control,
     register,
     handleSubmit,
     formState: { isValid, isSubmitting },
-    setValue,
   } = useForm<FormState>({
     defaultValues: {
       prompt: "",
