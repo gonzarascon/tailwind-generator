@@ -1,15 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { OpenAI } from "openai-streams";
 import { OpenAIStream } from "@/lib/OpenAiStream";
 
-const systemConfig = `You are an experienced chef that wants to help people easily cook from their homes. You explain recipes with ease and without complicating them much so anyone can cook. You always format your recipes using Markdown so the users can read them easily.`;
+const systemConfig = `You are a front-end and design specialist,  you like making awesome design systems with figma and tailwindcss. That expertise you have leads you to always keep in mind the best practices of the technology you use to come with perfect technical and design-wise decisions.`;
 
 const prompt = (
-  listedItems: string
-) => `I want to cook something with the ingredients in my house but I don't come up with any ideas. Based on the following ingredients and quantities, write a recipe for me to do, it does not necessarily need to include all of the ingredients listed and you can't add ingredients that I haven't listed to you.
-Currently, I have:
-${listedItems}
-What can I make?`;
+  userPrompt: string,
+  colorList?: string
+) => `Based on my indications, give me a color palette for me to add to my tailwind.config file. I don't need any conversation with you, just the color extension to add to my config.  The palette should be unique without repeating the actual colors tailwind gives as defaults. Please for each color you suggest to me, add the different variants of it, for example:
+\`\`\` blue: {50: "some hex code", 100:"another hex code",  and so}\`\`\`
+${userPrompt}
+${
+  colorList
+    ? `Also, keep in mind the following colors as a reference for the palette I'm looking for, they should be included:
+    ${colorList}
+    `
+    : ""
+}
+
+
+`;
 
 export default async function handler(req: NextRequest) {
   try {
@@ -17,9 +26,12 @@ export default async function handler(req: NextRequest) {
 
     const body = await req.json();
 
-    const items = body.items as string[];
+    const userPrompt = body.prompt as string;
+    const colors = body.colors as string[] | undefined;
 
-    const formattedItems = items.map((i) => `- ${i}`).join("\r\n");
+    const formattedItems = colors
+      ? colors.map((c) => `- ${c}`).join("\r\n")
+      : undefined;
 
     if (!token) {
       return new Response("No token was provided", { status: 400 });
@@ -29,14 +41,15 @@ export default async function handler(req: NextRequest) {
         messages: [
           {
             role: "user",
-            content: prompt(formattedItems),
+            content: prompt(userPrompt, formattedItems),
           },
           {
             role: "system",
             content: systemConfig,
           },
         ],
-        temperature: 0.4,
+        temperature: 0.6,
+        top_p: 0.5,
         stream: true,
       });
 

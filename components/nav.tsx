@@ -86,7 +86,7 @@ export default function Nav() {
         onClick={() => setTheme(theme === "light" ? "dark" : "light")}
         className={cn(
           "p-3 transition-colors rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700",
-          {
+          mounted && {
             "text-slate-700": theme === "light",
             "text-slate-100": theme === "dark",
           }
@@ -138,7 +138,7 @@ export default function Nav() {
               variant="outline"
               className={cn({
                 "animate-ring ease-in-out direction-alternate delay-100 justify-self-end":
-                  !tokenSaved,
+                  !tokenSaved && mounted,
               })}
             >
               Add Open AI API Key

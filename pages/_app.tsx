@@ -6,7 +6,6 @@ import { cn } from "@/lib/cn";
 import { ThemeProvider } from "next-themes";
 import Nav from "@/components/nav";
 import Script from "next/script";
-// import "highlight.js/styles/github-dark-dimmed.css";
 
 const queryClient = new QueryClient();
 

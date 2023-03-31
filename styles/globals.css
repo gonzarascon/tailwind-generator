@@ -13,7 +13,7 @@
   }
 
   .scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 rounded-xl;
+    @apply bg-slate-500 rounded-xl hover:bg-slate-400;
   }
 }
 
